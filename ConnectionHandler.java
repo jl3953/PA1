@@ -1,6 +1,11 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Called on by server to handle a new connection from accept().
+ *
+ * @author Jennifer Lam jl3953
+ */
 public class ConnectionHandler implements Runnable{
 
     private Socket connectionSocket;

@@ -1,6 +1,11 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Message server.
+ *
+ * @author Jennifer Lam jl3953
+ */
 public class Server{
 
     public static void main(String[] args) throws Exception{
