@@ -14,17 +14,10 @@ public class Server{
             
             Socket connectionSocket = welcomeSocket.accept();
 
-            BufferedReader inFromClient = new BufferedReader(
-                    new InputStreamReader(connectionSocket.getInputStream()));
+            System.out.println("accepted another connection");
 
-            DataOutputStream outToClient = new DataOutputStream(
-                    connectionSocket.getOutputStream());
-
-            clientSentence = inFromClient.readLine();
-
-            capitalizedSentence = clientSentence.toUpperCase() + "\n";
-
-            outToClient.writeBytes(capitalizedSentence);
+            Runnable handler = new ConnectionHandler(connectionSocket);
+            new Thread((Runnable) handler).start();
 
         }
     }
