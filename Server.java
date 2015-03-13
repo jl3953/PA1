@@ -61,7 +61,11 @@ public class Server{
         DataOutputStream outToClient = new DataOutputStream(
                 connectionSocket.getOutputStream());
         //read in client first
-        String[] temp = inFromClient.readLine().split(" ");
+        String reply = inFromClient.readLine();
+        if (reply.equals("ONLINE")){
+            return true;
+        }
+        String[] temp = reply.split(" ");
         String username = temp[0];
         String password = temp[1];
         //retries.put(username, retries.get(username)-1);

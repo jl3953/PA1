@@ -9,13 +9,17 @@ import java.util.*;
  */
 public class Client{
 
-    private BufferedReader inFromUser;
-    private Socket clientSocket;
-    private DataOutputStream outToServer;
-    private BufferedReader inFromServer;
-    private boolean online;
+    public BufferedReader inFromUser;
+    public Socket clientSocket;
+    public DataOutputStream outToServer;
+    public BufferedReader inFromServer;
+    public boolean online;
 
     public Client() throws Exception{
+        //openConnections();
+    }
+
+    public void openConnections() throws Exception{
         this.clientSocket = new Socket("localhost", 6789);
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
         this.outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -24,7 +28,12 @@ public class Client{
         this.online = false;
     }
 
+    public void closeConnections() throws Exception{
+        this.clientSocket.close();
+    }
+
     public void authenticate() throws Exception{
+        openConnections();
         //prompt user
         System.out.print("Username: ");
         System.out.flush();
@@ -43,6 +52,8 @@ public class Client{
 
             if (reply.equals("OK")){
                 System.out.println("Welcome to simple chat server!");
+                this.online = true;
+                closeConnections();
                 return;
             } else if (reply.equals("THIRD_TIME")){
                 System.out.println("Invalid password. Your account has been blocked." +
@@ -56,38 +67,6 @@ public class Client{
                 System.out.println("Invalid password. Please try again");
             }
         } 
-        /**int retries = 3;
-        System.out.print("Username: ");
-        System.out.flush();
-
-        while (retries > 0){
-            retries--;
-            String username = this.inFromUser.readLine();
-            System.out.print("Password: ");
-            System.out.flush();
-            String password = this.inFromUser.readLine();
-
-            this.sendToServer(username + " " + password);
-            String reply = this.readFromServer();
-
-            if (reply.equals("OK")){
-                this.online = true;
-                return;
-            }
-            else if (reply.equals("BLOCKED")){
-                System.out.println("Due to multiple login failures, your "+
-                        "account has been blocked. Please try again after sometime.");
-                System.exit(0);
-            }
-            else{
-                System.out.println("Invalid password. Please try again");
-                System.out.println(reply);
-            }
-        }
-
-        System.out.println("Invalid Password. Your account has been blocked." +
-                " Please try again after sometime.");
-        System.exit(0);*/
     }
 
     public void sendToServer(String string) throws Exception{
@@ -99,10 +78,17 @@ public class Client{
     }
 
 
+
     public static void main(String[] args) throws Exception{
 
         Client client = new Client();
         client.authenticate();
+
+        String command = client.inFromUser.readLine();
+        
+
+
+
 
 
         /**String sentence;
