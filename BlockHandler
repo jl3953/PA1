@@ -1,0 +1,21 @@
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.
+
+public class BlockHandler implements Runnable{
+
+    public HashMap<String, Boolean> blocked;
+    public String username;
+
+    public BlockHandler(HashMap<String, Boolean> blocked, String username){
+        this.blocked = blocked;
+        this.username = username;
+    }
+
+    public void run(){
+
+
+        blocked.put(username, false);
+    }
+
