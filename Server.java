@@ -64,7 +64,7 @@ public class Server{
         String[] temp = inFromClient.readLine().split(" ");
         String username = temp[0];
         String password = temp[1];
-        retries.put(username, retries.get(username)-1);
+        //retries.put(username, retries.get(username)-1);
 
         //check if user is blocked
         Calendar cal = Calendar.getInstance();
@@ -84,8 +84,11 @@ public class Server{
                 outToClient.writeBytes("OK\n");
                 retries.put(username, RETRIES);
                 return true;
+            } else if (retries.get(username) == 1){
+                retries.put(username, retries.get(username)-1);
             } else {
                 outToClient.writeBytes("TRY_AGAIN\n");
+                retries.put(username,retries.get(username)-1);
                 temp = inFromClient.readLine().split(" ");
                 username = temp[0];
                 password = temp[1];
