@@ -14,26 +14,30 @@ public class Client{
     public DataOutputStream outToServer;
     public BufferedReader inFromServer;
     public boolean online;
+    public Random random;
+    public String name;
 
     public Client() throws Exception{
         //openConnections();
+        this.name = "";
     }
 
-    public void openConnections() throws Exception{
-        this.clientSocket = new Socket("localhost", 6789);
+    public void openConnections(String serverip, int serverport) throws Exception{
+        this.clientSocket = new Socket(serverip, serverport);
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
         this.outToServer = new DataOutputStream(clientSocket.getOutputStream());
         this.inFromServer = new BufferedReader(new InputStreamReader(
                     clientSocket.getInputStream()));
         this.online = false;
+        this.random = new Random();
     }
 
     public void closeConnections() throws Exception{
         this.clientSocket.close();
     }
 
-    public void authenticate() throws Exception{
-        openConnections();
+    public void authenticate(String serverIP, int serverport) throws Exception{
+        openConnections(serverIP, serverport);
         //prompt user
         System.out.print("Username: ");
         System.out.flush();
@@ -53,6 +57,7 @@ public class Client{
             if (reply.equals("OK")){
                 System.out.println("Welcome to simple chat server!");
                 this.online = true;
+                this.name = username;
                 closeConnections();
                 return;
             } else if (reply.equals("THIRD_TIME")){
@@ -77,44 +82,36 @@ public class Client{
         return this.inFromServer.readLine();
     }
 
-
-
     public static void main(String[] args) throws Exception{
 
+        String serverip = args[0];
+        int serverport = Integer.parseInt(args[1]);
+
         Client client = new Client();
-        client.authenticate();
+        client.authenticate(serverip, serverport);
 
-        String command = client.inFromUser.readLine();
-        
+        //You need three threads--one to listen for incoming connections, 
+        //one to go on with its business, one for heartbeats
 
+        //Server
+        int port = Math.abs(client.random.nextInt() % 10000);
+        Runnable listener = new ClientListener(port);
+        Thread t = new Thread(listener);
+        t.start();
 
+        //heartbeat
+        //TODO make sure it's the server's port and machine
 
+        Runnable heartbeat = new HeartBeat(serverport, serverip, client.name, port);
+        Thread t2 = new Thread(heartbeat);
+        t2.start();
 
-
-        /**String sentence;
-          String modifiedSentence;
-
-          BufferedReader inFromUser = new BufferedReader(
-          new InputStreamReader(System.in));
-
-          Socket clientSocket = new Socket("localhost", 6789);
-
-          DataOutputStream outToServer = new DataOutputStream(
-          clientSocket.getOutputStream());
-
-          BufferedReader inFromServer = new BufferedReader(
-          new InputStreamReader(clientSocket.getInputStream()));
-
-          sentence = inFromUser.readLine();
-
-          outToServer.writeBytes(sentence + "\n");
-
-          modifiedSentence = inFromServer.readLine();
-
-          System.out.println("FROM SERVER: " + modifiedSentence);
-
-          clientSocket.close();
-          */
+        //here's the one where we go about our own business
+        while(true){
+            System.out.println("end");
+            Thread.sleep(3*1000);
+        }
     }
+
 }
 

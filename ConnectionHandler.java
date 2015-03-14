@@ -20,17 +20,27 @@ public class ConnectionHandler implements Runnable{
         String capitalizedSentence;
 
         try{
+            //input stream from connecting client
             BufferedReader inFromClient = new BufferedReader(
                     new InputStreamReader(connectionSocket.getInputStream()));
 
-            DataOutputStream outToClient = new DataOutputStream(
-                    connectionSocket.getOutputStream());
-
             clientSentence = inFromClient.readLine();
 
-            capitalizedSentence = clientSentence.toUpperCase() + "\n";
+            //output stream to client server
+            String[] temp = clientSentence.split(" ");
+            String addressport = temp[3].split(":")[1];
+            String machine = addressport.split("/")[0];
+            int port = Integer.parseInt(addressport.split("/")[1]);
 
-            outToClient.writeBytes(capitalizedSentence);
+            Socket out = new Socket(machine, port);
+            DataOutputStream outToClient = new DataOutputStream(
+                    out.getOutputStream());
+
+            if(clientSentence != null){
+                capitalizedSentence = clientSentence.toUpperCase() + "\n";
+                outToClient.writeBytes(capitalizedSentence);
+            }
+            out.close();
         } catch (IOException e){
             e.printStackTrace();
         }

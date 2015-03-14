@@ -11,25 +11,22 @@ import java.lang.*;
  */
 public class Server{
 
-    /**public HashMap<String, String> authentication;
-      public HashMap<String, Integer> retries;
-      public HashMap<String, Boolean> blocked;
-      public ServerSocket welcomeSocket;
-      */
     public final static int RETRIES = 3;
     public final static int BLOCK_TIME = 60;//in seconds
 
 
-    /**public Server(){
-      this.authentication = new HashMap<String,String>();
-      this.blocked = new HashMap<String, Boolean>();
-      this.retries = new HashMap<String, Integer>();
-      initMaps("credentials.txt");
-      }*/
+    /**
+     * Initializes all the data structures to keep track of states.
+     * @param filename filename of credentials
+     * @param authentication maps name to password
+     * @param blocked the time that a user is unblocked
+     * @param retries how many retries a user has left
+     */
     public static void initMaps(String filename,
             HashMap<String,String> authentication,
             HashMap<String,Long> blocked,
-            HashMap<String, Integer> retries){
+            HashMap<String, Integer> retries,
+            HashMap<String, Beat> online){
         try{
             BufferedReader br = new BufferedReader(new FileReader(filename));
             String username;
@@ -40,6 +37,7 @@ public class Server{
                 authentication.put(username, password);
                 retries.put(username, RETRIES);
                 blocked.put(username, cal.getTimeInMillis());
+                online.put(username, false);
             }
         } catch(Exception e){
             e.printStackTrace();
@@ -51,9 +49,13 @@ public class Server{
      * @param authentication hashmap storing username to password
      * @param blocked hashmap indicating whether a username is blocked
      * @param retries hashmap telling us how many retries the client has left
+     * @param online hashmap telling us which users are online
      */                             
-    public static boolean authenticate(Socket connectionSocket, HashMap<String,String> authentication,
-            HashMap<String,Long> blocked, HashMap<String, Integer> retries) throws Exception{
+    public static boolean authenticate(Socket connectionSocket, 
+            HashMap<String,String> authentication,
+            HashMap<String,Long> blocked, 
+            HashMap<String, Integer> retries,
+            HashMap<String, Boolean> online) throws Exception{
         /** Input from client */
         BufferedReader inFromClient = new BufferedReader(
                 new InputStreamReader(connectionSocket.getInputStream()));
@@ -62,31 +64,29 @@ public class Server{
                 connectionSocket.getOutputStream());
         //read in client first
         String reply = inFromClient.readLine();
-        if (reply.equals("ONLINE")){
+        String[] temp = reply.split(" ");
+        String username = temp[0].trim();
+
+        //check if client is already logged in
+        if (online.get(username)){
             return true;
         }
-        String[] temp = reply.split(" ");
-        String username = temp[0];
         String password = temp[1];
-        //retries.put(username, retries.get(username)-1);
 
         //check if user is blocked
         Calendar cal = Calendar.getInstance();
         if (blocked.get(username) > cal.getTimeInMillis()){
-            System.out.println("block: "+blocked.get(username)
-                    + " current: "+cal.getTimeInMillis());
             outToClient.writeBytes("BLOCKED\n");
             retries.put(username, RETRIES);
-            System.out.println("retries: "+retries.get(username));
             return false;
         }
         //first two tries
         while (retries.get(username) > 0){
-            System.out.println("enter the retries while");
-            System.out.println("password: " + password);
+            //If pass word and username match, return true and mark user online
             if (authentication.get(username).equals(password)){
                 outToClient.writeBytes("OK\n");
                 retries.put(username, RETRIES);
+                online.put(username, true);
                 return true;
             } else if (retries.get(username) == 1){
                 retries.put(username, retries.get(username)-1);
@@ -102,7 +102,6 @@ public class Server{
         outToClient.writeBytes("THIRD_TIME\n");
         blocked.put(username, cal.getTimeInMillis() + BLOCK_TIME * 1000);
         retries.put(username, RETRIES);
-        System.out.println("retries: " + retries.get(username));
         return false;
 
     }
@@ -111,23 +110,25 @@ public class Server{
     public static void main(String[] args) throws Exception{
 
 
-        ServerSocket welcomeSocket = new ServerSocket(6789);
+        ServerSocket welcomeSocket = new ServerSocket(Integer.parseInt(args[0]));
         HashMap<String, String> authentication = new HashMap<String,String>();
         HashMap<String, Long> blocked = new HashMap<String, Long>();
         HashMap<String, Integer> retries = new HashMap<String, Integer>();
-        initMaps("credentials.txt", authentication, blocked, retries);
+        HashMap<String, Boolean> online = new HashMap<String, Boolean>();
+        initMaps("credentials.txt", authentication, blocked, retries, online);
+
+        //Spawn another thread to take care of checking whether clients are still alive
+        Runnable heartbeatChecker = new HeartBeatChecker(online);
+        Thread
+
 
         while(true){
-
-            System.out.println("begin while loop");
-
             Socket connectionSocket = welcomeSocket.accept();
-            if(authenticate(connectionSocket, authentication, blocked, retries)){
-                System.out.println("accepted another connection");
+            if(authenticate(connectionSocket, authentication, blocked, retries,online)){
+                System.out.println("valid connection.");
                 Runnable handler = new ConnectionHandler(connectionSocket);
                 new Thread((Runnable) handler).start();
             }
-            System.out.println("end while loop");
 
         }
     }
