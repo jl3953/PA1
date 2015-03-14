@@ -34,7 +34,6 @@ public class MessageObject{
         this.sender = extract(fields[SENDER]);
         this.action = extract(fields[ACTION]);
         this.field3 = extract(fields[FIELD3]);
-        System.out.println(fields[FIELD4]);
         this.field4 = fields[FIELD4];
         //message or broadcast
         /**if (fields.length > 4){

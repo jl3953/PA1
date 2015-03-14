@@ -97,6 +97,23 @@ public class Client{
         }
     }
 
+    public void sendCommand(String command, String param){
+        try{
+            String initialOK = this.name;
+            outToServer.writeBytes(initialOK + "\n");
+            
+            String message = "sender:" + this.name +
+                " action:serveraction" +
+                " field3:" + command +
+                " field4:" + param;
+
+            outToServer.writeBytes(message + "\n");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public static void main(String[] args) throws Exception{
 
         String serverip = args[0];
@@ -133,6 +150,11 @@ public class Client{
                 client.openConnections(serverip, serverport);
                 client.sendMessage("ALL", comObj.param1());
                 client.closeConnections();
+            } else if (comObj.action().equals("block")){
+                client.openConnections(serverip, serverport);
+                client.sendCommand(comObj.action(), comObj.param1());
+                client.closeConnections();
+            } else{
             }
 
         }

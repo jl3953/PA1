@@ -19,7 +19,25 @@ public class ConnectionHandler implements Runnable{
     }
 
     public static void sendOut(ClientObject sender, ClientObject recipient, String payload){
-        ConnectionHandler.sendOut(sender.username(), recipient, payload);
+        //check if recipient has blocked sender
+        try{
+            if (recipient.isBlocked(sender)){
+                Socket conn = new Socket(sender.IP(), sender.port());
+                DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                out.writeBytes("Your message could not be delivered as the recipient has blocked you.\n");
+                conn.close();
+            } else {
+                //open connection
+                Socket conn = new Socket(recipient.IP(), recipient.port());
+                DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                //send message
+                out.writeBytes(sender.username() + ": " + payload + "\n");
+                //close connection
+                conn.close();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public static void sendOut(String sender, ClientObject recipient, String payload){
@@ -36,7 +54,6 @@ public class ConnectionHandler implements Runnable{
         }
     }
 
-
     public void run(){
 
         String clientSentence;
@@ -50,7 +67,7 @@ public class ConnectionHandler implements Runnable{
 
             //Processing client request
             if (clientSentence != null){
-                System.out.println(clientSentence);
+                System.out.println("ConnectionHandler:" + clientSentence);
                 MessageObject message = new MessageObject(clientSentence);
 
                 //Identifying client
@@ -90,12 +107,26 @@ public class ConnectionHandler implements Runnable{
                         recipient.putInMailbox(co.username(), message.field4());
                     }
                 }
+                //block
+                else if (message.action().equals("serveraction") && message.field3().equals("block")){
+                    ClientObject blockedUser = mymap.get(message.field4());
+                    co.blockUser(blockedUser);
+                    try{
+                        Socket conn = new Socket(co.IP(), co.port());
+                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        out.writeBytes("User "+blockedUser.username()+" has been blocked.\n");
+                        conn.close();
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+
                 //checking to see if client has any unread messages
                 while (co.hasMail()){
                     System.out.println("has mail");
                     System.out.println(co.IP() + ":" + co.port());
                     MailNode node = co.getMail();
-                    ConnectionHandler.sendOut(node.sender(), co, node.message());
+                    ConnectionHandler.sendOut(mymap.get(node.sender()), co, node.message());
                 }
 
 
@@ -108,6 +139,7 @@ public class ConnectionHandler implements Runnable{
                 /**capitalizedSentence = clientSentence.toUpperCase() + "\n";
                   outToClient.writeBytes(capitalizedSentence);
                   out.close();*/
+                System.out.println("ConnectionHandler: terminated");
             }
 
         } catch (Exception e){

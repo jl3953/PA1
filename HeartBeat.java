@@ -8,7 +8,7 @@ public class HeartBeat implements Runnable{
     private String servermachine;
     private String name;
     private int listeningport;
-    public static final int INTERVAL = 30; //in seconds
+    public static final int INTERVAL = 5; //in seconds
 
     public HeartBeat(int serverport, String servermachine, String name, int listeningport){
         this.serverport = serverport;

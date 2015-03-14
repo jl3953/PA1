@@ -16,17 +16,20 @@ public class CommandObject{
 
         String[] temp = command.split("\\s+");
         this.action = temp[0].trim();
-
-        if(temp.length >= 2 && !this.action.equals("message")){
+        if (this.action.equals("message")){
             this.param1 = temp[1].trim();
-            for(int i = 2; i < temp.length; i++){
+            this.param2 = temp[2].trim();
+            for (int i=3; i < temp.length; i++){
+                this.param2 += " " + temp[i];
+            }
+        } else if (this.action.equals("broadcast")){
+            this.param1 = temp[1].trim();
+            for (int i=2; i < temp.length; i++){
                 this.param1 += " " + temp[i];
             }
-        } else if (temp.length >= 3 && this.action.equals("message")){
-            this.param2 = temp[2].trim();
-            for (int i = 3; i < temp.length; i++){
-                this.param2 += " " + temp[i].trim();
-            }
+        } else if (temp.length == 2){
+            this.param1 = temp[1].trim();
+            this.param2 = "";
         } else {
             this.param1 = "";
             this.param2 = "";

@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class ClientObject{
 
@@ -13,6 +14,7 @@ public class ClientObject{
     private String IP;
     private int port;
     private LinkedList<MailNode> mailbox;
+    private Set<ClientObject> blockList;
 
     public static final int RETRIES = 3;
 
@@ -26,6 +28,19 @@ public class ClientObject{
         this.IP = "";
         this.port = 0;
         this.mailbox = new LinkedList<MailNode>();
+        this.blockList = Collections.newSetFromMap(new ConcurrentHashMap<ClientObject,Boolean>());
+    }
+
+    public void blockUser(ClientObject co){
+        this.blockList.add(co);
+    }
+
+    public boolean isBlocked(ClientObject co){
+        return this.blockList.contains(co);
+    }
+
+    public void unblockUser(ClientObject co){
+        this.blockList.remove(co);
     }
 
     public String username(){
