@@ -162,6 +162,10 @@ public class Client{
                 client.openConnections(serverip, serverport);
                 client.sendCommand(comObj.action(), comObj.param1());
                 client.closeConnections();
+            } else if (comObj.action().equals("getaddress")){
+                client.openConnections(serverip, serverport);
+                client.sendCommand(comObj.action(), comObj.param1());
+                client.closeConnections();
             }
             else{
             }

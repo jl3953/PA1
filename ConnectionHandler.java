@@ -149,6 +149,20 @@ public class ConnectionHandler implements Runnable{
                         e.printStackTrace();
                     }
                 }
+                //getaddress
+                else if(message.action().equals("serveraction") && message.field3().equals("getaddress")){
+                    String address = "";
+                    ClientObject target = mymap.get(message.field4());
+                    address += target.IP() + ":" + target.port();
+                    try{
+                        Socket conn = new Socket(co.IP(), co.port());
+                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        out.writeBytes(address + "\n");
+                        conn.close();
+                    } catch (Exception e){ 
+                        e.printStackTrace();
+                    }   
+                }
 
                 else {}
 
