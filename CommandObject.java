@@ -29,10 +29,10 @@ public class CommandObject{
             }
         } else if (temp.length == 2){
             this.param1 = temp[1].trim();
-            this.param2 = "";
+            this.param2 = "nope";
         } else {
-            this.param1 = "";
-            this.param2 = "";
+            this.param1 = "nope";
+            this.param2 = "nope";
         }
     }
 
