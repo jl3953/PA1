@@ -26,16 +26,18 @@ public class Server{
     public static void initMaps(String filename, ConcurrentHashMap<String, ClientObject> mymap){
         try{
             BufferedReader br = new BufferedReader(new FileReader(filename));
+            String line;
             String username;
             String password;
             Calendar cal = Calendar.getInstance();
-            while((username = br.readLine()) != null){
-                password = br.readLine();
+            while((line = br.readLine()) != null){
+                username = line.split(" ")[0];
+                password = line.split(" ")[1];
                 ClientObject co = new ClientObject(username, password, cal.getTimeInMillis());
                 mymap.put(username, co);
             }
         } catch (Exception e){
-                e.printStackTrace();
+            e.printStackTrace();
         }
     }
     /**
@@ -61,7 +63,15 @@ public class Server{
 
         //check if client is already logged in
         ClientObject co = mymap.get(username);
-        if (co.online() || temp.length == 1){
+        if (temp.length == 1){
+            return true;
+        }
+        if (temp.length == 2 && co.port() != 0){
+            //check to see if person is already online.
+            Socket conn = new Socket(co.IP(), co.port());
+            DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+            out.writeBytes("EXIT_NOW" + "\n");
+            conn.close();
             return true;
         }
         String password = temp[1].trim();

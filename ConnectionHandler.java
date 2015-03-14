@@ -64,9 +64,14 @@ public class ConnectionHandler implements Runnable{
             BufferedReader inFromClient = new BufferedReader(
                     new InputStreamReader(connectionSocket.getInputStream()));
             clientSentence = inFromClient.readLine();
+            System.out.println("connectionhandler this better be the problem");
+            if (clientSentence == null){
+                System.out.println("connectionhandler yes");
+            }
 
             //Processing client request
             if (clientSentence != null){
+                System.out.println("connection handler past the if statement");
                 System.out.println("ConnectionHandler:" + clientSentence);
                 MessageObject message = new MessageObject(clientSentence);
 
@@ -194,20 +199,9 @@ public class ConnectionHandler implements Runnable{
                     ConnectionHandler.sendOut(mymap.get(node.sender()), co, node.message());
                 }
 
-
-                //output stream to client server
-                //Socket out = new Socket(machine, port);
-                //DataOutputStream outToClient = new DataOutputStream(
-                //      out.getOutputStream());
-
-                //processing the actual request
-                /**capitalizedSentence = clientSentence.toUpperCase() + "\n";
-                  outToClient.writeBytes(capitalizedSentence);
-                  out.close();*/
-                connectionSocket.close();
-                System.out.println("ConnectionHandler: terminated");
             }
-
+            connectionSocket.close();
+            System.out.println("ConnectionHandler terminated");
         } catch (Exception e){
             e.printStackTrace();
         }

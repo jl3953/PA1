@@ -54,7 +54,9 @@ public class Client{
             password = this.inFromUser.readLine();
             this.sendToServer(username + " " + password);
 
+            System.out.println("Client: so far so good");
             reply = this.readFromServer();
+            System.out.println("Client: " + reply);
 
             if (reply.equals("OK")){
                 System.out.println("Welcome to simple chat server!");

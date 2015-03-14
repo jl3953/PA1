@@ -25,6 +25,11 @@ public class ClientListener implements Runnable{
                 //read input from server and print it out to screen
                 String line = "";
                 while ((line = inFromServer.readLine()) != null){
+                    if (line.equals("EXIT_NOW")){
+                        System.out.println("You have been logged out. Your username is" +
+                            " logged in elsewhere.");
+                        System.exit(0);
+                    }
                     System.out.println(line);
                 }
 

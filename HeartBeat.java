@@ -25,8 +25,7 @@ public class HeartBeat implements Runnable{
                 Socket connection = new Socket(this.servermachine, this.serverport);
 
                 //send an initial verification of online-ness to server
-                DataOutputStream outToServer = new DataOutputStream(
-                        connection.getOutputStream());
+                DataOutputStream outToServer = new DataOutputStream(connection.getOutputStream());
                 String initialOK = this.name + " ";
                 outToServer.writeBytes(initialOK + "\n");
 
