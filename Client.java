@@ -52,8 +52,6 @@ public class Client{
 
             reply = this.readFromServer();
 
-            System.out.println(reply);
-
             if (reply.equals("OK")){
                 System.out.println("Welcome to simple chat server!");
                 this.online = true;
@@ -82,6 +80,23 @@ public class Client{
         return this.inFromServer.readLine();
     }
 
+    public void sendMessage(String recipient, String payload){
+
+        try{
+            String initialOK = this.name;
+            outToServer.writeBytes(initialOK + "\n");
+
+            String message = "sender:" + this.name +
+                " action:send" +
+                " field3:" + recipient +
+                " field4:" + payload;
+
+            outToServer.writeBytes(message + "\n");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws Exception{
 
         String serverip = args[0];
@@ -100,16 +115,26 @@ public class Client{
         t.start();
 
         //heartbeat
-        //TODO make sure it's the server's port and machine
-
         Runnable heartbeat = new HeartBeat(serverport, serverip, client.name, port);
         Thread t2 = new Thread(heartbeat);
         t2.start();
 
         //here's the one where we go about our own business
+        String command;
         while(true){
-            System.out.println("end");
-            Thread.sleep(3*1000);
+            command = client.inFromUser.readLine();
+            CommandObject comObj = new CommandObject(command);
+
+            if (comObj.action().equals("message")){
+                client.openConnections(serverip, serverport);
+                client.sendMessage(comObj.param1(), comObj.param2());
+                client.closeConnections();
+            } else if (comObj.action().equals("broadcast")){
+                client.openConnections(serverip, serverport);
+                client.sendMessage("ALL", comObj.param1());
+                client.closeConnections();
+            }
+
         }
     }
 

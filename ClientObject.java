@@ -10,6 +10,9 @@ public class ClientObject{
     private int retries;
     private boolean online;
     private long lastbeat;
+    private String IP;
+    private int port;
+    private LinkedList<MailNode> mailbox;
 
     public static final int RETRIES = 3;
 
@@ -20,6 +23,9 @@ public class ClientObject{
         this.retries = RETRIES;
         this.online = false;
         this.lastbeat = time;
+        this.IP = "";
+        this.port = 0;
+        this.mailbox = new LinkedList<MailNode>();
     }
 
     public String username(){
@@ -60,5 +66,33 @@ public class ClientObject{
 
     public void setLastbeat(long beat){
         this.lastbeat = beat;
+    }
+
+    public String IP(){
+        return this.IP;
+    }
+
+    public void setIP(String newIP){
+        this.IP = newIP;
+    }
+
+    public int port(){
+        return this.port;
+    }
+
+    public void setPort(int newPort){
+        this.port = newPort;
+    }
+
+    public void putInMailbox(String sender, String message){
+        this.mailbox.addLast(new MailNode(sender, message));
+    }
+
+    public MailNode getMail(){
+        return this.mailbox.pop();
+    }
+
+    public boolean hasMail(){
+        return !this.mailbox.isEmpty();
     }
 }

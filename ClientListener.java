@@ -13,12 +13,9 @@ public class ClientListener implements Runnable{
 
     public void run(){
         try{
-            System.out.println("while loop start");
-            //listen for server to send it messages
 
             ServerSocket listen = new ServerSocket(this.port);
             while (true){
-                System.out.println("waiting for new connection");
                 //accept a connection from the server
                 Socket connectionSocket = listen.accept();
                 //open a buffer for reading input from server

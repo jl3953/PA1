@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import java.net.*;
 import java.lang.*;
@@ -22,77 +23,70 @@ public class Server{
      * @param blocked the time that a user is unblocked
      * @param retries how many retries a user has left
      */
-    public static void initMaps(String filename,
-            HashMap<String,String> authentication,
-            HashMap<String,Long> blocked,
-            HashMap<String, Integer> retries,
-            HashMap<String, Beat> online){
+    public static void initMaps(String filename, ConcurrentHashMap<String, ClientObject> mymap){
         try{
             BufferedReader br = new BufferedReader(new FileReader(filename));
             String username;
             String password;
             Calendar cal = Calendar.getInstance();
-            while ((username = br.readLine()) != null){
+            while((username = br.readLine()) != null){
                 password = br.readLine();
-                authentication.put(username, password);
-                retries.put(username, RETRIES);
-                blocked.put(username, cal.getTimeInMillis());
-                online.put(username, false);
+                ClientObject co = new ClientObject(username, password, cal.getTimeInMillis());
+                mymap.put(username, co);
             }
-        } catch(Exception e){
-            e.printStackTrace();
+        } catch (Exception e){
+                e.printStackTrace();
         }
     }
     /**
      * Authenticates a user.
      * @param connectionSocket the socket to which server is connected to client
-     * @param authentication hashmap storing username to password
-     * @param blocked hashmap indicating whether a username is blocked
-     * @param retries hashmap telling us how many retries the client has left
-     * @param online hashmap telling us which users are online
+     * @param authentication ConcurrentHashMap storing username to password
+     * @param blocked ConcurrentHashMap indicating whether a username is blocked
+     * @param retries ConcurrentHashMap telling us how many retries the client has left
+     * @param online ConcurrentHashMap telling us which users are online
      */                             
-    public static boolean authenticate(Socket connectionSocket, 
-            HashMap<String,String> authentication,
-            HashMap<String,Long> blocked, 
-            HashMap<String, Integer> retries,
-            HashMap<String, Boolean> online) throws Exception{
-        /** Input from client */
+    public static boolean authenticate(Socket connectionSocket,
+            ConcurrentHashMap<String, ClientObject> mymap) throws Exception{
+        //Input from client
         BufferedReader inFromClient = new BufferedReader(
                 new InputStreamReader(connectionSocket.getInputStream()));
-        /** Output to client */
+        //Output to client
         DataOutputStream outToClient = new DataOutputStream(
                 connectionSocket.getOutputStream());
-        //read in client first
+        //read in client
         String reply = inFromClient.readLine();
-        String[] temp = reply.split(" ");
+        String[] temp = reply.split("\\s+");
         String username = temp[0].trim();
 
         //check if client is already logged in
-        if (online.get(username)){
+        ClientObject co = mymap.get(username);
+        if (co.online() || temp.length == 1){
             return true;
         }
-        String password = temp[1];
+        String password = temp[1].trim();
 
-        //check if user is blocked
+        //Check if user is blocked
         Calendar cal = Calendar.getInstance();
-        if (blocked.get(username) > cal.getTimeInMillis()){
+        if(co.blocked() > cal.getTimeInMillis()){
             outToClient.writeBytes("BLOCKED\n");
-            retries.put(username, RETRIES);
+            co.setRetries(co.retries()-1);
             return false;
         }
+
         //first two tries
-        while (retries.get(username) > 0){
-            //If pass word and username match, return true and mark user online
-            if (authentication.get(username).equals(password)){
+        while (co.retries() > 0){
+            //If password and username match, return true and mark user online
+            if(co.password().equals(password)){
                 outToClient.writeBytes("OK\n");
-                retries.put(username, RETRIES);
-                online.put(username, true);
+                co.setRetries(RETRIES);
+                co.setOnline(true);
                 return true;
-            } else if (retries.get(username) == 1){
-                retries.put(username, retries.get(username)-1);
+            } else if (co.retries() == 1){
+                co.setRetries(0);
             } else {
                 outToClient.writeBytes("TRY_AGAIN\n");
-                retries.put(username,retries.get(username)-1);
+                co.setRetries(co.retries()-1);
                 temp = inFromClient.readLine().split(" ");
                 username = temp[0];
                 password = temp[1];
@@ -100,33 +94,29 @@ public class Server{
         }
         //third try
         outToClient.writeBytes("THIRD_TIME\n");
-        blocked.put(username, cal.getTimeInMillis() + BLOCK_TIME * 1000);
-        retries.put(username, RETRIES);
+        co.setBlocked(cal.getTimeInMillis() + BLOCK_TIME * 10000);
+        co.setRetries(RETRIES);
         return false;
-
     }
-
 
     public static void main(String[] args) throws Exception{
 
 
         ServerSocket welcomeSocket = new ServerSocket(Integer.parseInt(args[0]));
-        HashMap<String, String> authentication = new HashMap<String,String>();
-        HashMap<String, Long> blocked = new HashMap<String, Long>();
-        HashMap<String, Integer> retries = new HashMap<String, Integer>();
-        HashMap<String, Boolean> online = new HashMap<String, Boolean>();
-        initMaps("credentials.txt", authentication, blocked, retries, online);
+        ConcurrentHashMap<String, ClientObject> mymap = new ConcurrentHashMap<String, ClientObject>();
+        initMaps("credentials.txt", mymap);
 
         //Spawn another thread to take care of checking whether clients are still alive
-        Runnable heartbeatChecker = new HeartBeatChecker(online);
-        Thread
+        Runnable heartbeatChecker = new HeartbeatChecker(mymap);
+        Thread t = new Thread(heartbeatChecker);
+        t.start();
 
 
         while(true){
             Socket connectionSocket = welcomeSocket.accept();
-            if(authenticate(connectionSocket, authentication, blocked, retries,online)){
+            if(authenticate(connectionSocket, mymap)){
                 System.out.println("valid connection.");
-                Runnable handler = new ConnectionHandler(connectionSocket);
+                Runnable handler = new ConnectionHandler(connectionSocket, mymap);
                 new Thread((Runnable) handler).start();
             }
 
