@@ -36,6 +36,10 @@ public class Client{
         this.clientSocket.close();
     }
 
+    public String name(){
+        return this.name;
+    }
+
     public void authenticate(String serverIP, int serverport) throws Exception{
         openConnections(serverIP, serverport);
         //prompt user
@@ -101,7 +105,7 @@ public class Client{
         try{
             String initialOK = this.name;
             outToServer.writeBytes(initialOK + "\n");
-            
+
             String message = "sender:" + this.name +
                 " action:serveraction" +
                 " field3:" + command +
@@ -166,7 +170,36 @@ public class Client{
                 client.openConnections(serverip, serverport);
                 client.sendCommand(comObj.action(), comObj.param1());
                 client.closeConnections();
+            } else if (comObj.action().equals("logout")){
+                client.openConnections(serverip, serverport);
+                client.sendCommand(comObj.action(), comObj.param1());
+                client.closeConnections();
+                System.out.println("Goodbye!");
+                System.exit(0);
+            } else if (comObj.action().equals("private")){
+                //getaddress
+                try {
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand("private", comObj.param1());
+                    String address = client.inFromServer.readLine();
+                    //parse address
+                    String privateip = address.split(":")[0];
+                    int privateport = Integer.parseInt(address.split(":")[1]);
+                    client.closeConnections();
+                    //send private message
+                    client.openConnections(privateip, privateport);
+                    client.outToServer.writeBytes(client.name + ": " + comObj.param2() + "\n");
+                    client.closeConnections();
+                }
+                catch (NullPointerException e){
+                    System.out.println("User " + comObj.param1() + " is no" +
+                            " longer available at this address. You may send" +
+                            " an offline message through the server.");
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
             }
+
             else{
             }
 

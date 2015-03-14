@@ -16,7 +16,7 @@ public class CommandObject{
 
         String[] temp = command.split("\\s+");
         this.action = temp[0].trim();
-        if (this.action.equals("message")){
+        if (this.action.equals("message") || this.action.equals("private")){
             this.param1 = temp[1].trim();
             this.param2 = temp[2].trim();
             for (int i=3; i < temp.length; i++){

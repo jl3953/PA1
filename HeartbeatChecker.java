@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 public class HeartbeatChecker implements Runnable{
 
     private ConcurrentHashMap<String, ClientObject> mymap;
-    public static final int INTERVAL = HeartBeat.INTERVAL * 2;
+    public static final int INTERVAL = (int) (HeartBeat.INTERVAL * 1.25);
 
     public HeartbeatChecker(ConcurrentHashMap<String, ClientObject> mymap){
         this.mymap = mymap;

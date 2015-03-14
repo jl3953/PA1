@@ -153,7 +153,11 @@ public class ConnectionHandler implements Runnable{
                 else if(message.action().equals("serveraction") && message.field3().equals("getaddress")){
                     String address = "";
                     ClientObject target = mymap.get(message.field4());
-                    address += target.IP() + ":" + target.port();
+                    if (target.online()){
+                    address += "User " + target.username() + "'s address is " + target.IP() + ":" + target.port();
+                    } else {
+                        address += "User " + target.username() + " is not online.";
+                    }
                     try{
                         Socket conn = new Socket(co.IP(), co.port());
                         DataOutputStream out = new DataOutputStream(conn.getOutputStream());
@@ -162,6 +166,22 @@ public class ConnectionHandler implements Runnable{
                     } catch (Exception e){ 
                         e.printStackTrace();
                     }   
+                } //logout
+                else if (message.action().equals("serveraction") && message.field3().equals("logout")){
+                    co.setOnline(false);
+                } else if (message.action().equals("serveraction") && message.field3().equals("private")){
+                    String address = "";
+                    ClientObject target = mymap.get(message.field4());
+                    if(target.online()){
+                        address += target.IP() + ":" + target.port();
+                        DataOutputStream out = new DataOutputStream(connectionSocket.getOutputStream());
+                        out.writeBytes(address + "\n");
+                    } else {
+                        Socket conn = new Socket(co.IP(), co.port());
+                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        out.writeBytes(address + "\n");
+                        conn.close();
+                    }
                 }
 
                 else {}
@@ -184,6 +204,7 @@ public class ConnectionHandler implements Runnable{
                 /**capitalizedSentence = clientSentence.toUpperCase() + "\n";
                   outToClient.writeBytes(capitalizedSentence);
                   out.close();*/
+                connectionSocket.close();
                 System.out.println("ConnectionHandler: terminated");
             }
 
