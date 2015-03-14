@@ -119,7 +119,18 @@ public class ConnectionHandler implements Runnable{
                     } catch (Exception e){
                         e.printStackTrace();
                     }
-                }
+                } else if (message.action().equals("serveraction") && message.field3().equals("unblock")){
+                    ClientObject blockedUser = mymap.get(message.field4());
+                    co.unblockUser(blockedUser);
+                    try {
+                        Socket conn = new Socket(co.IP(), co.port());
+                        DataOutputStream out = new DataOutputStream(conn.getOutputStream());
+                        out.writeBytes("User "+blockedUser.username()+" is unblocked.\n");
+                        conn.close();
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                } else {}
 
                 //checking to see if client has any unread messages
                 while (co.hasMail()){

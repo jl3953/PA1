@@ -154,7 +154,12 @@ public class Client{
                 client.openConnections(serverip, serverport);
                 client.sendCommand(comObj.action(), comObj.param1());
                 client.closeConnections();
-            } else{
+            } else if (comObj.action().equals("unblock")){
+                client.openConnections(serverip, serverport);
+                client.sendCommand(comObj.action(), comObj.param1());
+                client.closeConnections();
+            }
+            else{
             }
 
         }
