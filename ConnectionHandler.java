@@ -104,7 +104,6 @@ public class ConnectionHandler implements Runnable{
                         if(temp.equals(co)){
                             continue;
                         }
-                        System.out.println("temp: "+temp.username() + " co: " + co.username());
                         if (temp.online() && !temp.equals(co)){
                             ConnectionHandler.sendOut(co, temp, message.field4());
                         } else {
@@ -215,8 +214,6 @@ public class ConnectionHandler implements Runnable{
 
                 //checking to see if client has any unread messages
                 while (co.hasMail()){
-                    System.out.println("has mail");
-                    System.out.println(co.IP() + ":" + co.port());
                     MailNode node = co.getMail();
                     ConnectionHandler.sendOut(mymap.get(node.sender()), co, node.message());
                 }

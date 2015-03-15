@@ -125,7 +125,6 @@ public class Server{
         while(true){
             Socket connectionSocket = welcomeSocket.accept();
             if(authenticate(connectionSocket, mymap)){
-                System.out.println("valid connection.");
                 Runnable handler = new ConnectionHandler(connectionSocket, mymap);
                 new Thread((Runnable) handler).start();
             }

@@ -35,12 +35,6 @@ public class MessageObject{
         this.action = extract(fields[ACTION]);
         this.field3 = extract(fields[FIELD3]);
         this.field4 = fields[FIELD4];
-        //message or broadcast
-        /**if (fields.length > 4){
-            for (int i = 4; i < fields.length; i++){
-                this.field4 += " " + fields[i];
-            }
-        }**/
     }
 
 
