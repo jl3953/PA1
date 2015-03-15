@@ -119,14 +119,36 @@ public class Client{
         }
     }
 
+    public static int assignPort(ServerSocket serverSocket){
+        boolean truth = false;
+        while (truth){
+            Random rand = new Random();
+            int port = Math.abs(rand.nextInt() % 10000);
+            try {
+                serverSocket = new ServerSocket(port);
+                return port;
+            } catch (BindException b){
+                truth = true;
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return 0;
+    }
 
-    public static void main(String[] args) throws Exception{
+
+    public static void main(String[] args){
 
         String serverip = args[0];
         int serverport = Integer.parseInt(args[1]);
 
-        Client client = new Client();
-        client.authenticate(serverip, serverport);
+        Client client = null;
+        try{
+            client = new Client();
+            client.authenticate(serverip, serverport);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         //You need three threads--one to listen for incoming connections, 
         //one to go on with its business, one for heartbeats
@@ -137,74 +159,78 @@ public class Client{
         Thread t = new Thread(listener);
         t.start();
 
-        //heartbeat
-        Runnable heartbeat = new HeartBeat(serverport, serverip, client.name, port);
-        Thread t2 = new Thread(heartbeat);
-        t2.start();
+        try{
+            //heartbeat
+            Runnable heartbeat = new HeartBeat(serverport, serverip, client.name, port);
+            Thread t2 = new Thread(heartbeat);
+            t2.start();
 
-        //here's the one where we go about our own business
-        String command;
-        while(true){
-            command = client.inFromUser.readLine();
-            CommandObject comObj = new CommandObject(command);
+            //here's the one where we go about our own business
+            String command;
+            while(true){
+                command = client.inFromUser.readLine();
+                CommandObject comObj = new CommandObject(command);
 
-            if (comObj.action().equals("message")){
-                client.openConnections(serverip, serverport);
-                client.sendMessage(comObj.param1(), comObj.param2());
-                client.closeConnections();
-            } else if (comObj.action().equals("broadcast")){
-                client.openConnections(serverip, serverport);
-                client.sendMessage("ALL", comObj.param1());
-                client.closeConnections();
-            } else if (comObj.action().equals("block")){
-                client.openConnections(serverip, serverport);
-                client.sendCommand(comObj.action(), comObj.param1());
-                client.closeConnections();
-            } else if (comObj.action().equals("unblock")){
-                client.openConnections(serverip, serverport);
-                client.sendCommand(comObj.action(), comObj.param1());
-                client.closeConnections();
-            } else if (comObj.action().equals("online")){
-                client.openConnections(serverip, serverport);
-                client.sendCommand(comObj.action(), comObj.param1());
-                client.closeConnections();
-            } else if (comObj.action().equals("getaddress")){
-                client.openConnections(serverip, serverport);
-                client.sendCommand(comObj.action(), comObj.param1());
-                client.closeConnections();
-            } else if (comObj.action().equals("logout")){
-                client.openConnections(serverip, serverport);
-                client.sendCommand(comObj.action(), comObj.param1());
-                client.closeConnections();
-                System.out.println("Goodbye!");
-                System.exit(0);
-            } else if (comObj.action().equals("private")){
-                //getaddress
-                try {
+                if (comObj.action().equals("message")){
                     client.openConnections(serverip, serverport);
-                    client.sendCommand("private", comObj.param1());
-                    String address = client.inFromServer.readLine();
-                    //parse address
-                    String privateip = address.split(":")[0];
-                    int privateport = Integer.parseInt(address.split(":")[1]);
+                    client.sendMessage(comObj.param1(), comObj.param2());
                     client.closeConnections();
-                    //send private message
-                    client.openConnections(privateip, privateport);
-                    client.outToServer.writeBytes(client.name + ": " + comObj.param2() + "\n");
+                } else if (comObj.action().equals("broadcast")){
+                    client.openConnections(serverip, serverport);
+                    client.sendMessage("ALL", comObj.param1());
                     client.closeConnections();
+                } else if (comObj.action().equals("block")){
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand(comObj.action(), comObj.param1());
+                    client.closeConnections();
+                } else if (comObj.action().equals("unblock")){
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand(comObj.action(), comObj.param1());
+                    client.closeConnections();
+                } else if (comObj.action().equals("online")){
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand(comObj.action(), comObj.param1());
+                    client.closeConnections();
+                } else if (comObj.action().equals("getaddress")){
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand(comObj.action(), comObj.param1());
+                    client.closeConnections();
+                } else if (comObj.action().equals("logout")){
+                    client.openConnections(serverip, serverport);
+                    client.sendCommand(comObj.action(), comObj.param1());
+                    client.closeConnections();
+                    System.out.println("Goodbye!");
+                    System.exit(0);
+                } else if (comObj.action().equals("private")){
+                    //getaddress
+                    try {
+                        client.openConnections(serverip, serverport);
+                        client.sendCommand("private", comObj.param1());
+                        String address = client.inFromServer.readLine();
+                        //parse address
+                        String privateip = address.split(":")[0];
+                        int privateport = Integer.parseInt(address.split(":")[1]);
+                        client.closeConnections();
+                        //send private message
+                        client.openConnections(privateip, privateport);
+                        client.outToServer.writeBytes(client.name + ": " + comObj.param2() + "\n");
+                        client.closeConnections();
+                    }
+                    catch (NullPointerException e){
+                        System.out.println("User " + comObj.param1() + " is no" +
+                                " longer available at this address. You may send" +
+                                " an offline message through the server.");
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
-                catch (NullPointerException e){
-                    System.out.println("User " + comObj.param1() + " is no" +
-                            " longer available at this address. You may send" +
-                            " an offline message through the server.");
-                } catch (Exception e){
-                    e.printStackTrace();
+
+                else{
                 }
-            }
 
-            else{
             }
-
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 

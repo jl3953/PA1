@@ -57,22 +57,16 @@ public class ConnectionHandler implements Runnable{
     public void run(){
 
         String clientSentence;
-        String capitalizedSentence;
 
         try{
             //input stream from connecting client
             BufferedReader inFromClient = new BufferedReader(
                     new InputStreamReader(connectionSocket.getInputStream()));
             clientSentence = inFromClient.readLine();
-            System.out.println("connectionhandler this better be the problem");
-            if (clientSentence == null){
-                System.out.println("connectionhandler yes");
-            }
 
             //Processing client request
             if (clientSentence != null){
-                System.out.println("connection handler past the if statement");
-                System.out.println("ConnectionHandler:" + clientSentence);
+                System.out.println(clientSentence);
                 MessageObject message = new MessageObject(clientSentence);
 
                 //Identifying client
@@ -87,11 +81,29 @@ public class ConnectionHandler implements Runnable{
                     co.setLastbeat(cal.getTimeInMillis() + HeartBeat.INTERVAL * 1000);
                     co.setIP(message.IP());
                     co.setPort(message.port());
+                    //broadcast presence
+                    if (co.firstTime()){
+                        co.setFirstTime(false);
+                        for (Map.Entry<String, ClientObject> entry : mymap.entrySet()){
+                            ClientObject temp = entry.getValue();
+                            if (temp.equals(co))
+                                continue;
+                            if (temp.isBlocked(co))
+                                continue;
+                            String presence = "User " + co.username() + " is online.";
+                            if (temp.online()){
+                                ConnectionHandler.sendOut(co,temp,presence);
+                            }
+                        }
+                    }
                 } 
                 // broadcast
                 else if (message.action().equals("send") && message.field3().equals("ALL")){
                     for (Map.Entry<String, ClientObject> entry : mymap.entrySet()){
                         ClientObject temp = entry.getValue();
+                        if(temp.equals(co)){
+                            continue;
+                        }
                         System.out.println("temp: "+temp.username() + " co: " + co.username());
                         if (temp.online() && !temp.equals(co)){
                             ConnectionHandler.sendOut(co, temp, message.field4());
@@ -141,6 +153,9 @@ public class ConnectionHandler implements Runnable{
                     String onlinePeeps = "";
                     for (Map.Entry<String,ClientObject> entry : mymap.entrySet()){
                         ClientObject temp = entry.getValue();
+                        if (temp.equals(co)){
+                            continue;
+                        }
                         if (temp.online()){
                             onlinePeeps += temp.username() + "\n";
                         }
@@ -174,6 +189,13 @@ public class ConnectionHandler implements Runnable{
                 } //logout
                 else if (message.action().equals("serveraction") && message.field3().equals("logout")){
                     co.setOnline(false);
+                    String loggedout = "User " + co.username() + " has logged out.";
+                    for (Map.Entry<String, ClientObject> entry : mymap.entrySet()){
+                        ClientObject temp = entry.getValue();
+                        if (temp.online()){
+                            ConnectionHandler.sendOut(co, temp, loggedout);
+                        }
+                    }
                 } else if (message.action().equals("serveraction") && message.field3().equals("private")){
                     String address = "";
                     ClientObject target = mymap.get(message.field4());

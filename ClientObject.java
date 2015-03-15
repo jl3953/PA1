@@ -15,6 +15,7 @@ public class ClientObject{
     private int port;
     private LinkedList<MailNode> mailbox;
     private Set<ClientObject> blockList;
+    private boolean firstTime;
 
     public static final int RETRIES = 3;
 
@@ -29,6 +30,15 @@ public class ClientObject{
         this.port = 0;
         this.mailbox = new LinkedList<MailNode>();
         this.blockList = Collections.newSetFromMap(new ConcurrentHashMap<ClientObject,Boolean>());
+        this.firstTime = false;
+    }
+
+    public boolean firstTime(){
+        return this.firstTime;
+    }
+
+    public void setFirstTime(boolean bool){
+        this.firstTime = bool;
     }
 
     public void blockUser(ClientObject co){

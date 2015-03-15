@@ -72,7 +72,6 @@ public class Server{
             DataOutputStream out = new DataOutputStream(conn.getOutputStream());
             out.writeBytes("EXIT_NOW" + "\n");
             conn.close();
-            return true;
         }
         String password = temp[1].trim();
 
@@ -91,6 +90,7 @@ public class Server{
                 outToClient.writeBytes("OK\n");
                 co.setRetries(RETRIES);
                 co.setOnline(true);
+                co.setFirstTime(true);
                 return true;
             } else if (co.retries() == 1){
                 co.setRetries(0);
