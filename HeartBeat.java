@@ -2,12 +2,15 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+/**
+ * Used by a client to send heartbeats.
+ */
 public class HeartBeat implements Runnable{
 
-    private int serverport;
-    private String servermachine;
-    private String name;
-    private int listeningport;
+    private int serverport; //server's port
+    private String servermachine; //server's host
+    private String name; //name of client
+    private int listeningport; //port on which client is listening
     public static final int INTERVAL = 30; //in seconds
 
     public HeartBeat(int serverport, String servermachine, String name, int listeningport){

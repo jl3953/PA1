@@ -19,9 +19,7 @@ public class Server{
     /**
      * Initializes all the data structures to keep track of states.
      * @param filename filename of credentials
-     * @param authentication maps name to password
-     * @param blocked the time that a user is unblocked
-     * @param retries how many retries a user has left
+     * @param mymap map of all client's current states
      */
     public static void initMaps(String filename, ConcurrentHashMap<String, ClientObject> mymap){
         try{
@@ -43,10 +41,7 @@ public class Server{
     /**
      * Authenticates a user.
      * @param connectionSocket the socket to which server is connected to client
-     * @param authentication ConcurrentHashMap storing username to password
-     * @param blocked ConcurrentHashMap indicating whether a username is blocked
-     * @param retries ConcurrentHashMap telling us how many retries the client has left
-     * @param online ConcurrentHashMap telling us which users are online
+     * @param mymap map of all client states
      */                             
     public static boolean authenticate(Socket connectionSocket,
             ConcurrentHashMap<String, ClientObject> mymap) throws Exception{
@@ -122,6 +117,7 @@ public class Server{
         t.start();
 
 
+        //take care of all incoming connections
         while(true){
             Socket connectionSocket = welcomeSocket.accept();
             if(authenticate(connectionSocket, mymap)){

@@ -2,19 +2,29 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Used by Client.java to represent a user's command in an object for easier
+ * manipulation.
+ */
 public class CommandObject{
 
-    private String action;
-    private String param1;
-    private String param2;
+    private String action; //what the command is, ie block, message
+    private String param1; //first parameter of command
+    private String param2; //second parameter of command
 
     public CommandObject(String command){
         parseCommand(command);
     }
 
+    /**
+     * Parses a user's command.
+     * @param command
+     */
     private void parseCommand(String command){
 
+        //command delimited by spaces
         String[] temp = command.split("\\s+");
+
         this.action = temp[0].trim();
         if (this.action.equals("message") || this.action.equals("private")){
             this.param1 = temp[1].trim();

@@ -3,19 +3,23 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * Class to represent the state of a client when Server.java is trying to keep
+ * track of states of multiple clients--methods are very short and self explanatory.
+ */
 public class ClientObject{
 
     private String username;
     private String password;
-    private long blocked;
-    private int retries;
-    private boolean online;
-    private long lastbeat;
-    private String IP;
-    private int port;
-    private LinkedList<MailNode> mailbox;
-    private Set<ClientObject> blockList;
-    private boolean firstTime;
+    private long blocked;//whether or not client is blocked for authentication
+    private int retries; //how many times client can try again to authenticate
+    private boolean online; //whether or not client is online
+    private long lastbeat; //last timestamp of heartbeat
+    private String IP; //ipaddress of its listening thread
+    private int port; //port of client's listening thread
+    private LinkedList<MailNode> mailbox; //linked list of all unread message
+    private Set<ClientObject> blockList; //set of all other clients that it has blocked
+    private boolean firstTime; //whether or not it's the client's first time logging in
 
     public static final int RETRIES = 3;
 

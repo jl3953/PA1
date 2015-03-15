@@ -3,10 +3,14 @@ import java.util.*;
 import java.net.*;
 import java.util.concurrent.*;
 
+/**
+ * Used by server as another thread to periodically check for heartbeats.
+ */
 public class HeartbeatChecker implements Runnable{
 
-    private ConcurrentHashMap<String, ClientObject> mymap;
-    public static final int INTERVAL = (int) (HeartBeat.INTERVAL * 1.25);
+    private ConcurrentHashMap<String, ClientObject> mymap; //map of all client states from server
+    public static final int INTERVAL = (int) (HeartBeat.INTERVAL * 1.25); //check interval--slightly over
+                                                                        //30 seconds to avoid race condition
 
     public HeartbeatChecker(ConcurrentHashMap<String, ClientObject> mymap){
         this.mymap = mymap;

@@ -4,20 +4,28 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * Called on by server to handle a new connection from accept().
+ * Called on by server to handle a new connection from accept(), its run() method is extremely
+ * long and wordy, because it needs to match every single command against a possible list of 
+ * commands, and it needs to process each differently.
  *
  * @author Jennifer Lam jl3953
  */
 public class ConnectionHandler implements Runnable{
 
-    private Socket connectionSocket;
-    private ConcurrentHashMap<String,ClientObject> mymap;
+    private Socket connectionSocket; //accepted socket from Server
+    private ConcurrentHashMap<String,ClientObject> mymap; //map of all clients and their states from server
 
     public ConnectionHandler(Socket connectionSocket, ConcurrentHashMap<String,ClientObject> mymap){
         this.connectionSocket = connectionSocket;
         this.mymap = mymap;
     }
 
+    /**
+     * Sends a message to a client.
+     * @param sender the sending client
+     * @param recipient the receiving client
+     * @param payload the message to send
+     */
     public static void sendOut(ClientObject sender, ClientObject recipient, String payload){
         //check if recipient has blocked sender
         try{
@@ -40,6 +48,9 @@ public class ConnectionHandler implements Runnable{
         }
     }
 
+    /**
+     * Previous version of sendout.
+     */
     public static void sendOut(String sender, ClientObject recipient, String payload){
         try{
             //open connection

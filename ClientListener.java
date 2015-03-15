@@ -2,6 +2,9 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Class just to listen in for server connections.
+ */
 public class ClientListener implements Runnable{
 
     private int port;//port on which client is listening on

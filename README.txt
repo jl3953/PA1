@@ -222,6 +222,9 @@ sender:Jennifer action:serveraction field3:private field4:<target>
 (The protocol request for private looks similar to getaddress)
 **Heartbeat**
 sender:Jennifer action:send field3:HEARTBEAT field4:<client's host machine>/<client's port>
+(Server uses information from the heartbeat to update a client's server,
+port, and state. This was a design decision, because it makes sense that the
+heartbeat notifies the server of the client's current state.)
 
 ===============================================================================
                             IMPORTANT NOTES

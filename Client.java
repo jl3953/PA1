@@ -22,6 +22,11 @@ public class Client{
         this.name = "";
     }
 
+    /**
+     * Opens connections and all input/output buffers associated with the server.
+     * @param serverip IP address of the server
+     * @param serverport port of the server.
+     */
     public void openConnections(String serverip, int serverport) throws Exception{
         this.clientSocket = new Socket(serverip, serverport);
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -32,14 +37,26 @@ public class Client{
         this.random = new Random();
     }
 
+    /**
+     * Closes all connections to maintain non-permanent TCP connection.
+     */
     public void closeConnections() throws Exception{
         this.clientSocket.close();
     }
 
+    /**
+     * Returns the client's username.
+     */
     public String name(){
         return this.name;
     }
 
+    /**
+     * Client authenticates itself with the server--protocol and print statements
+     * make it obvious what is happening in this method.
+     * @param serverIP server's IP address
+     * @param serverport server's port
+     */
     public void authenticate(String serverIP, int serverport) throws Exception{
         openConnections(serverIP, serverport);
         //prompt user
@@ -76,14 +93,27 @@ public class Client{
         } 
     }
 
+    /**
+     * Sends a line to the server.
+     * @param string the message
+     */
     public void sendToServer(String string) throws Exception{
         this.outToServer.writeBytes(string + "\n");
     }
 
+    /**
+     * Reads a message from the server
+     */
     public String readFromServer() throws Exception{
         return this.inFromServer.readLine();
     }
 
+    /**
+     * Formats a request to the server following the protocol (described in README),
+     * this send is used when a message must be sent from one client to another.
+     * @param recipient recipient of message
+     * @param payload the actual message
+     */
     public void sendMessage(String recipient, String payload){
 
         try{
@@ -101,6 +131,12 @@ public class Client{
         }
     }
 
+    /**
+     * Formats a request, but only when client is communicating only to server,
+     * not other clients.
+     * @param command client's command
+     * @param param parameters of that command
+     */
     public void sendCommand(String command, String param){
         try{
             String initialOK = this.name;
@@ -117,6 +153,10 @@ public class Client{
         }
     }
 
+    /**
+     * I tried to fix the port binding problem by using this method, but the
+     * serverSocket cannot be passed in and out as such.
+     */
     public static int assignPort(ServerSocket serverSocket){
         boolean truth = false;
         while (truth){
@@ -151,21 +191,22 @@ public class Client{
         //You need three threads--one to listen for incoming connections, 
         //one to go on with its business, one for heartbeats
 
-        //Server
+        //Server thread
         int port = Math.abs(client.random.nextInt() % 10000);
         Runnable listener = new ClientListener(port);
         Thread t = new Thread(listener);
         t.start();
 
         try{
-            //heartbeat
+            //heartbeat thread
             Runnable heartbeat = new HeartBeat(serverport, serverip, client.name, port);
             Thread t2 = new Thread(heartbeat);
             t2.start();
 
-            //here's the one where we go about our own business
+            //here's the thread where we process commands
             String command;
             while(true){
+                //read in user's command
                 command = client.inFromUser.readLine();
                 CommandObject comObj = new CommandObject(command);
 

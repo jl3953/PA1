@@ -2,6 +2,9 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
+/**
+ * Used by server to process requests sent by client according to protocol
+ */
 public class MessageObject{
 
     private String sender;
@@ -38,12 +41,19 @@ public class MessageObject{
     }
 
 
+    /**
+     * Extracts a field value
+     * @param field
+     */
     private String extract(String field){
         
         String[] temp = field.split(" ");
         return temp[0].trim();
     }
 
+    /**
+     * If the message contains an IP address and port, this method extracts it
+     */
     private void extractAddress(){
         String[] temp = this.field4.split("/");
         this.IP = temp[0].trim();
@@ -74,10 +84,4 @@ public class MessageObject{
         return this.port;
     }
 }
-
-
-
-
-
-
 
